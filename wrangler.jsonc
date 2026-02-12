@@ -1,9 +1,9 @@
 {
 	"name": "globaldots-dns-checker",
-	"main": "src/index.ts",
+	"main": "backend/src/index.ts",
 	"compatibility_date": "2024-01-01",
 	"assets": {
-		"directory": "../frontend/dist",
+		"directory": "frontend/dist",
 		"binding": "ASSETS"
 	},
 	"observability": {

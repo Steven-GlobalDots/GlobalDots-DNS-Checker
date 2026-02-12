@@ -1,73 +1,49 @@
-# GlobalDots DNS Checker - Deployment Guide
+# GlobalDots DNS Checker - GitHub Worker Deployment
 
-## ⚠️ IMPORTANT: This is NOT a Cloudflare Pages Project
+## Important: Build Command Configuration
 
-This project deploys as a **single Cloudflare Worker** with static assets. Do NOT use Cloudflare Pages auto-deployment.
-
-## Deployment Steps
-
-### 1. Build the Frontend
+In your Cloudflare Worker dashboard, update the **build command** to:
 
 ```bash
-cd frontend
-npm install
-npm run build
+chmod +x build.sh && ./build.sh
 ```
 
-This creates the production build in `frontend/dist`.
+This script will:
+1. Install frontend dependencies
+2. Build the frontend (`frontend/dist`)
+3. Deploy the Worker with static assets
 
-### 2. Deploy the Worker
+## Manual Deployment
+
+If you want to deploy manually from your local machine:
 
 ```bash
-cd backend
-npx wrangler deploy
-```
-
-Select your account when prompted. The Worker will deploy to:
-```
-https://globaldots-dns-checker.<your-subdomain>.workers.dev
+cd /Users/ganesh/Documents/CloudFlare/AntiGravity/dns-checker
+./build.sh
 ```
 
 ## How It Works
 
-The Worker serves both:
-- **Static frontend** from `frontend/dist`
+The Worker serves:
+- **Static frontend** from `frontend/dist` (React app)
 - **API endpoint** at `/api/query` for DNS lookups
 
 ## Local Development
-
-### Full Stack (Recommended)
 
 ```bash
 # Build frontend
 cd frontend && npm run build
 
-# Run worker (serves both frontend and API)
-cd ../backend && npx wrangler dev
+# Run worker locally
+cd .. && npx wrangler dev
 ```
 
 Open `http://localhost:8787`
 
-### Separate Dev Servers
-
-```bash
-# Terminal 1: Frontend
-cd frontend && npm run dev
-
-# Terminal 2: Backend
-cd backend && npx wrangler dev
-```
-
-Frontend: `http://localhost:5173`  
-Backend: `http://localhost:8787`
-
 ## Troubleshooting
 
-**Q: Cloudflare Pages keeps trying to auto-deploy**  
-A: This project should NOT be connected to Cloudflare Pages. Disconnect it from the Pages dashboard and deploy manually using `npx wrangler deploy`.
+**Q: Build fails with "frontend/dist does not exist"**  
+A: The build command in the Worker dashboard must run `./build.sh` to build the frontend first.
 
-**Q: Build fails with "directory not found"**  
-A: Build the frontend first: `cd frontend && npm run build`
-
-**Q: Permission errors**  
-A: Run `sudo chown -R $(whoami) ~/.npm` and `sudo chown -R $(whoami) ~/Documents/node_modules`
+**Q: Permission denied on build.sh**  
+A: The build command should include `chmod +x build.sh &&` before running it.

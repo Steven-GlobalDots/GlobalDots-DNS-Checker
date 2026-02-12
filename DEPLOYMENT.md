@@ -1,32 +1,30 @@
-# GlobalDots DNS Checker - CRITICAL DEPLOYMENT INSTRUCTIONS
+# GlobalDots DNS Checker - Single Worker Deployment
 
-## ⚠️ IMPORTANT: Manual Configuration Required
+## Overview
 
-Cloudflare Pages is auto-detecting this as a Worker project because of the `backend/wrangler.jsonc` file. You **MUST** manually configure the build settings.
+This project is deployed as a **single Cloudflare Worker** that serves both the static frontend and the DNS query API.
 
-## Step-by-Step Instructions
+## Architecture
 
-### 1. Configure Cloudflare Pages Build Settings
+- **Frontend**: React app built with Vite, served as static assets
+- **Backend**: Cloudflare Worker handling `/api/query` endpoint
+- **Deployment**: Single Worker with Static Assets binding
 
-Go to your Cloudflare Dashboard and follow these steps:
+## Deployment Steps
 
-1. Navigate to: **Pages** → **Your Project** → **Settings** → **Builds & deployments**
-2. Click **"Edit configuration"** or **"Configure Production deployments"**
-3. Set the following values:
+### 1. Build the Frontend
 
-   | Setting | Value |
-   |---------|-------|
-   | **Framework preset** | None |
-   | **Build command** | `cd frontend && npm install && npm run build` |
-   | **Build output directory** | `frontend/dist` |
-   | **Root directory** | (leave empty) |
+```bash
+cd frontend
+npm install
+npm run build
+```
 
-4. Click **"Save"**
-5. Go to **Deployments** and click **"Retry deployment"**
+This creates the production build in `frontend/dist`.
 
-### 2. Deploy the Backend Worker (Separate Step)
+### 2. Deploy the Worker
 
-The backend API must be deployed separately from your local machine:
+From the `backend` directory:
 
 ```bash
 cd backend
@@ -34,57 +32,67 @@ npm install
 npx wrangler deploy
 ```
 
-After deployment, you'll receive a worker URL like:
+The Worker will:
+- Serve the frontend from `frontend/dist`
+- Handle API requests at `/api/query`
+- Deploy to `https://globaldots-dns-checker.<your-subdomain>.workers.dev`
+
+## Local Development
+
+### Option 1: Full Stack (Recommended)
+
+1. Build the frontend:
+   ```bash
+   cd frontend && npm run build
+   ```
+
+2. Run the worker:
+   ```bash
+   cd backend && npx wrangler dev
+   ```
+
+3. Open `http://localhost:8787`
+
+### Option 2: Separate Dev Servers
+
+1. Run frontend dev server:
+   ```bash
+   cd frontend && npm run dev
+   ```
+
+2. Run backend worker:
+   ```bash
+   cd backend && npx wrangler dev
+   ```
+
+3. Update `frontend/src/App.tsx` line 64 to use `http://localhost:8787/api/query`
+
+## How It Works
+
+The Worker configuration (`backend/wrangler.jsonc`) includes:
+
+```json
+{
+  "name": "globaldots-dns-checker",
+  "main": "src/index.ts",
+  "assets": {
+    "directory": "../frontend/dist",
+    "binding": "ASSETS"
+  }
+}
 ```
-https://globaldots-dns-checker-api.<your-subdomain>.workers.dev
-```
 
-### 3. Update Frontend with Backend URL
-
-Edit `frontend/src/App.tsx` and update line 53:
-
-```typescript
-const backendUrl = 'https://globaldots-dns-checker-api.<your-subdomain>.workers.dev';
-```
-
-Then commit and push:
-```bash
-git add frontend/src/App.tsx
-git commit -m "feat: Update backend URL"
-git push origin main
-```
-
-## Why This Happens
-
-Cloudflare Pages automatically detects projects with `wrangler.jsonc` or `wrangler.toml` files and tries to deploy them as Workers. Since this is a monorepo with both a frontend (Pages) and backend (Worker), they must be deployed separately.
-
-## Testing Locally
-
-### Backend
-```bash
-cd backend
-npm install
-npx wrangler dev
-# Runs on http://localhost:8787
-```
-
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-# Runs on http://localhost:5173
-```
-
-For local testing, set `backendUrl` to `http://localhost:8787` in `frontend/src/App.tsx`.
+The Worker code routes requests:
+- `/api/query` → DNS query handler
+- All other requests → Static assets (frontend)
 
 ## Troubleshooting
 
-**Q: Build still fails with "Missing entry-point to Worker script"**  
-A: You haven't manually configured the build settings yet. Follow Step 1 above.
+**Q: Build fails with "directory not found"**  
+A: Build the frontend first: `cd frontend && npm run build`
 
-**Q: Frontend builds but shows errors when comparing**  
-A: The backend worker hasn't been deployed yet, or the `backendUrl` in the frontend is incorrect.
+**Q: API requests fail**  
+A: Check that the frontend is making requests to `/api/query` (relative path), not an absolute URL
 
-**Q: How do I know if the backend is deployed?**  
-A: Run `cd backend && npx wrangler deployments list` to see your deployed workers.
+**Q: Static assets don't load**  
+A: Ensure `frontend/dist` exists and contains the built files

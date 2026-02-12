@@ -1,14 +1,14 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 
 export interface Env {
-	// Add bindings here (e.g. KV, D1)
+	ASSETS: Fetcher;
 }
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		const url = new URL(request.url);
 
-		// CORS headers
+		// CORS headers for API endpoints
 		const corsHeaders = {
 			'Access-Control-Allow-Origin': '*',
 			'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -19,7 +19,8 @@ export default {
 			return new Response(null, { headers: corsHeaders });
 		}
 
-		if (url.pathname === '/query') {
+		// API endpoint for DNS queries
+		if (url.pathname === '/api/query') {
 			const name = url.searchParams.get('name');
 			const type = url.searchParams.get('type') || 'A';
 
@@ -52,6 +53,7 @@ export default {
 			}
 		}
 
-		return new Response('GlobalDots DNS Checker API', { headers: corsHeaders });
+		// Serve static assets for all other requests
+		return env.ASSETS.fetch(request);
 	},
 } satisfies ExportedHandler<Env>;

@@ -59,10 +59,9 @@ function App() {
     // Query each unique record
     for (const [_, record] of uniqueQueries) {
       try {
-        // TODO: Replace with actual backend worker URL once deployed
-        const backendUrl = 'http://localhost:8787'; // For local dev
+        // Use relative path - Worker serves both frontend and API
         const response = await fetch(
-          `${backendUrl}/query?name=${encodeURIComponent(record.name)}&type=${encodeURIComponent(record.type)}`
+          `/api/query?name=${encodeURIComponent(record.name)}&type=${encodeURIComponent(record.type)}`
         );
 
         if (!response.ok) {
@@ -176,8 +175,8 @@ function App() {
                   <button
                     onClick={() => setDestinationType('file')}
                     className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${destinationType === 'file'
-                        ? 'bg-gray-600 text-white shadow'
-                        : 'text-gray-400 hover:text-white'
+                      ? 'bg-gray-600 text-white shadow'
+                      : 'text-gray-400 hover:text-white'
                       }`}
                   >
                     Zone File
@@ -185,8 +184,8 @@ function App() {
                   <button
                     onClick={() => setDestinationType('server')}
                     className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${destinationType === 'server'
-                        ? 'bg-gray-600 text-white shadow'
-                        : 'text-gray-400 hover:text-white'
+                      ? 'bg-gray-600 text-white shadow'
+                      : 'text-gray-400 hover:text-white'
                       }`}
                   >
                     DNS Server

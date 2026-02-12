@@ -22,7 +22,6 @@ export default {
 		if (url.pathname === '/query') {
 			const name = url.searchParams.get('name');
 			const type = url.searchParams.get('type') || 'A';
-			const server = url.searchParams.get('server') || '1.1.1.1'; // Default to Cloudflare
 
 			if (!name) {
 				return new Response(JSON.stringify({ error: 'Missing name parameter' }), {
@@ -32,16 +31,6 @@ export default {
 			}
 
 			try {
-				// For now, we will use Google DNS-over-HTTPS as a proxy if the user requests it,
-				// or default to 1.1.1.1 if they don't specify (or if we can't easily reach an arbitrary IP via DoH).
-				// 
-				// NOTE: True arbitrary DNS query to a random authoritative server (IP) is difficult 
-				// without a raw socket DNS client. For this MVP, we will assume standard resolvers 
-				// or use a DoH gateway.
-				//
-				// If the user inputs a specific IP, we might need a different approach.
-				// For now, let's implement a simple DoH lookup to 1.1.1.1 or 8.8.8.8.
-
 				const dohUrl = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${encodeURIComponent(type)}`;
 
 				const response = await fetch(dohUrl, {
@@ -50,7 +39,7 @@ export default {
 					}
 				});
 
-				const data = await response.json();
+				const data: any = await response.json();
 
 				return new Response(JSON.stringify(data), {
 					headers: { ...corsHeaders, 'Content-Type': 'application/json' },

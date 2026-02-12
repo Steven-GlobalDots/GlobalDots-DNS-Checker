@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ComparisonResult, exportResults } from '../utils/comparisonEngine';
-import { DnsRecord } from '../utils/zoneParser';
+import { type ComparisonResult, exportResults } from '../utils/comparisonEngine';
+import type { DnsRecord } from '../utils/zoneParser';
 
 interface ResultsViewProps {
     results: ComparisonResult;

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { parseZoneFile, DnsRecord } from './utils/zoneParser'
-import { compareRecords, ComparisonResult } from './utils/comparisonEngine'
+import { parseZoneFile, type DnsRecord } from './utils/zoneParser'
+import { compareRecords, type ComparisonResult } from './utils/comparisonEngine'
 import { ResultsView } from './components/ResultsView'
 
 function App() {
@@ -31,7 +31,7 @@ function App() {
         destRecords = parseZoneFile(destText);
       } else if (destinationType === 'server' && destinationServer) {
         // Query DNS server for each source record
-        destRecords = await queryDnsServer(sourceRecords, destinationServer);
+        destRecords = await queryDnsServer(sourceRecords);
       }
 
       // Compare records
@@ -44,7 +44,7 @@ function App() {
     }
   };
 
-  const queryDnsServer = async (sourceRecords: DnsRecord[], server: string): Promise<DnsRecord[]> => {
+  const queryDnsServer = async (sourceRecords: DnsRecord[]): Promise<DnsRecord[]> => {
     const results: DnsRecord[] = [];
 
     // Get unique name+type combinations

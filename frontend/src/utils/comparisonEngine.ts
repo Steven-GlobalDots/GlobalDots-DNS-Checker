@@ -1,4 +1,4 @@
-import { DnsRecord } from './zoneParser';
+import type { DnsRecord } from './zoneParser';
 
 export interface ComparisonResult {
     matching: DnsRecord[];

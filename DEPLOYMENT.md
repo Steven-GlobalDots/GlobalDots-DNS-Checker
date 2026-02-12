@@ -1,21 +1,29 @@
-# GlobalDots DNS Checker - GitHub Worker Deployment
+# GlobalDots DNS Checker - Worker Deployment Guide
 
-## Important: Build Command Configuration
+## ⚠️ CRITICAL: Build Command Configuration
 
-In your Cloudflare Worker dashboard, update the **build command** to:
+In your Cloudflare Worker dashboard, set the **Build command** to:
 
 ```bash
-chmod +x build.sh && ./build.sh
+cd frontend && npm install && npm run build && cd .. && npx wrangler deploy
 ```
 
-This script will:
-1. Install frontend dependencies
-2. Build the frontend (`frontend/dist`)
-3. Deploy the Worker with static assets
+This single command will:
+1. Navigate to the frontend directory
+2. Install dependencies
+3. Build the React app to `frontend/dist`
+4. Return to root
+5. Deploy the Worker with static assets
 
-## Manual Deployment
+## Alternative: Using build.sh
 
-If you want to deploy manually from your local machine:
+If the inline command doesn't work, try:
+
+```bash
+bash build.sh
+```
+
+## Manual Local Deployment
 
 ```bash
 cd /Users/ganesh/Documents/CloudFlare/AntiGravity/dns-checker
@@ -24,9 +32,13 @@ cd /Users/ganesh/Documents/CloudFlare/AntiGravity/dns-checker
 
 ## How It Works
 
+The Worker configuration (`wrangler.jsonc`) specifies:
+- **Entry point**: `backend/src/index.ts`
+- **Static assets**: `frontend/dist`
+
 The Worker serves:
-- **Static frontend** from `frontend/dist` (React app)
-- **API endpoint** at `/api/query` for DNS lookups
+- All static files (HTML, CSS, JS) from `frontend/dist`
+- API endpoint at `/api/query` for DNS lookups
 
 ## Local Development
 
@@ -42,8 +54,11 @@ Open `http://localhost:8787`
 
 ## Troubleshooting
 
-**Q: Build fails with "frontend/dist does not exist"**  
-A: The build command in the Worker dashboard must run `./build.sh` to build the frontend first.
+**Q: "build.sh: No such file or directory"**  
+A: Use the inline build command instead (see above).
 
-**Q: Permission denied on build.sh**  
-A: The build command should include `chmod +x build.sh &&` before running it.
+**Q: "frontend/dist does not exist"**  
+A: The frontend must be built before deployment. Ensure the build command runs successfully.
+
+**Q: Permission errors**  
+A: Run `sudo chown -R $(whoami) ~/.npm`

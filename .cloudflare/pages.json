@@ -1,7 +1,0 @@
-{
-    "build": {
-        "command": "cd frontend && npm install && npm run build",
-        "destination": "frontend/dist",
-        "root_dir": "."
-    }
-}

@@ -1,15 +1,4 @@
-# This project contains a Cloudflare Worker in the /backend directory
-# The frontend should be deployed via Cloudflare Pages, NOT as a Worker
-
-# To prevent Cloudflare Pages from auto-detecting this as a Worker project,
-# you MUST manually configure the build settings in the Cloudflare Dashboard:
-
-# 1. Go to: Cloudflare Dashboard → Pages → Your Project → Settings → Builds & deployments
-# 2. Set the following:
-#    - Framework preset: None
-#    - Build command: cd frontend && npm install && npm run build
-#    - Build output directory: frontend/dist
-#    - Root directory: (leave empty or set to /)
-
-# The backend worker must be deployed separately:
-# cd backend && npx wrangler deploy
+# Ignore Cloudflare Pages auto-detection
+# This project should be deployed as a Worker, not via Pages
+.cloudflare/
+backend/wrangler.jsonc

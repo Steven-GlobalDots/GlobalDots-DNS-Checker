@@ -1,12 +1,32 @@
-# GlobalDots DNS Checker - Deployment Guide
+# GlobalDots DNS Checker - CRITICAL DEPLOYMENT INSTRUCTIONS
 
-## Separate Deployments Required
+## ⚠️ IMPORTANT: Manual Configuration Required
 
-This project has two separate components that need to be deployed independently:
+Cloudflare Pages is auto-detecting this as a Worker project because of the `backend/wrangler.jsonc` file. You **MUST** manually configure the build settings.
 
-### 1. Backend (Cloudflare Worker)
+## Step-by-Step Instructions
 
-Deploy manually from your local machine:
+### 1. Configure Cloudflare Pages Build Settings
+
+Go to your Cloudflare Dashboard and follow these steps:
+
+1. Navigate to: **Pages** → **Your Project** → **Settings** → **Builds & deployments**
+2. Click **"Edit configuration"** or **"Configure Production deployments"**
+3. Set the following values:
+
+   | Setting | Value |
+   |---------|-------|
+   | **Framework preset** | None |
+   | **Build command** | `cd frontend && npm install && npm run build` |
+   | **Build output directory** | `frontend/dist` |
+   | **Root directory** | (leave empty) |
+
+4. Click **"Save"**
+5. Go to **Deployments** and click **"Retry deployment"**
+
+### 2. Deploy the Backend Worker (Separate Step)
+
+The backend API must be deployed separately from your local machine:
 
 ```bash
 cd backend
@@ -14,30 +34,29 @@ npm install
 npx wrangler deploy
 ```
 
-After deployment, you'll get a worker URL like:
+After deployment, you'll receive a worker URL like:
 ```
 https://globaldots-dns-checker-api.<your-subdomain>.workers.dev
 ```
 
-**Important**: Copy this URL and update it in `frontend/src/App.tsx` on line 53:
+### 3. Update Frontend with Backend URL
+
+Edit `frontend/src/App.tsx` and update line 53:
+
 ```typescript
 const backendUrl = 'https://globaldots-dns-checker-api.<your-subdomain>.workers.dev';
 ```
 
-### 2. Frontend (Cloudflare Pages)
+Then commit and push:
+```bash
+git add frontend/src/App.tsx
+git commit -m "feat: Update backend URL"
+git push origin main
+```
 
-The frontend will auto-deploy via Cloudflare Pages when you push to GitHub.
+## Why This Happens
 
-**Cloudflare Pages Configuration**:
-- **Build command**: `npm install && npm run build`
-- **Build output directory**: `dist`
-- **Root directory**: `frontend`
-
-If auto-deployment isn't working, manually configure in Cloudflare Dashboard:
-1. Go to Pages → Your project → Settings → Builds & deployments
-2. Set the root directory to `frontend`
-3. Set build command to `npm install && npm run build`
-4. Set build output to `dist`
+Cloudflare Pages automatically detects projects with `wrangler.jsonc` or `wrangler.toml` files and tries to deploy them as Workers. Since this is a monorepo with both a frontend (Pages) and backend (Worker), they must be deployed separately.
 
 ## Testing Locally
 
@@ -46,6 +65,7 @@ If auto-deployment isn't working, manually configure in Cloudflare Dashboard:
 cd backend
 npm install
 npx wrangler dev
+# Runs on http://localhost:8787
 ```
 
 ### Frontend
@@ -53,6 +73,18 @@ npx wrangler dev
 cd frontend
 npm install
 npm run dev
+# Runs on http://localhost:5173
 ```
 
-Update `frontend/src/App.tsx` line 53 to use `http://localhost:8787` for local testing.
+For local testing, set `backendUrl` to `http://localhost:8787` in `frontend/src/App.tsx`.
+
+## Troubleshooting
+
+**Q: Build still fails with "Missing entry-point to Worker script"**  
+A: You haven't manually configured the build settings yet. Follow Step 1 above.
+
+**Q: Frontend builds but shows errors when comparing**  
+A: The backend worker hasn't been deployed yet, or the `backendUrl` in the frontend is incorrect.
+
+**Q: How do I know if the backend is deployed?**  
+A: Run `cd backend && npx wrangler deployments list` to see your deployed workers.
